@@ -50,7 +50,7 @@ commander
 	.option(
 		'-T, --threshold <number>',
 		'permit this number of errors, warnings, or notices, otherwise fail with exit code 2',
-		'0'
+		'9999999999'
 	)
 	.option(
 		'--reporter <reporter>',
@@ -73,16 +73,19 @@ Promise.resolve()
 	})
 	.then(config => {
 		// Load a sitemap based on the `--sitemap` flag
-		if (options.sitemap) {
+		if (options.sitemap || config.sitemap) {
 			return loadSitemapIntoConfig(options, config);
 		}
 		return config;
 	})
 	.then(config => {
-		// Override config reporters with CLI argument
+		// Override config reporters with CLI argument '--reporters'
 		if (options.reporter) {
 			config.defaults.reporters = [options.reporter];
 		}
+		return config;
+	})
+	.then(config => {
 		// Actually run Pa11y CI
 		return pa11yCi(urls.concat(config.urls || []), config.defaults);
 	})
@@ -223,14 +226,14 @@ function defaultConfig(config) {
 // URLs, and add them to an existing config object
 function loadSitemapIntoConfig(program, initialConfig) {
 	const sitemapFind = (
-		program.sitemapFind ?
-			new RegExp(program.sitemapFind, 'gi') :
+		(program.sitemapFind ?? initialConfig.sitemapFind) ?
+			new RegExp((program.sitemapFind ?? initialConfig.sitemapFind), 'gi') :
 			null
 	);
-	const sitemapReplace = program.sitemapReplace || '';
+	const sitemapReplace = program.sitemapReplace ?? initialConfig.sitemapReplace ?? '';
 	const sitemapExclude = (
-		program.sitemapExclude ?
-			new RegExp(program.sitemapExclude, 'gi') :
+		(program.sitemapExclude ?? initialConfig.sitemapExclude) ?
+			new RegExp((program.sitemapExclude ?? initialConfig.sitemapExclude), 'gi') :
 			null
 	);
 
@@ -271,5 +274,5 @@ function loadSitemapIntoConfig(program, initialConfig) {
 			});
 	}
 
-	return getUrlsFromSitemap(program.sitemap, initialConfig);
+	return getUrlsFromSitemap(program.sitemap ?? initialConfig.sitemap , initialConfig);
 }
