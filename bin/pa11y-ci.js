@@ -22,10 +22,10 @@ const commander = require('commander');
 // Here we're using Commander to specify the CLI options
 commander
 	.version(pkg.version)
-	.usage('[options] <paths>')
+	.usage('[options] <paths / urls>')
 	.option(
-		'-c, --config <path>',
-		'the path to a JSON or JavaScript config file'
+		'-c, --config <path / JSON string>',
+		'config as JSOn string or the path to a JSON / JavaScript config file'
 	)
 	.option(
 		'-s, --sitemap <url>',
@@ -51,7 +51,8 @@ commander
 		'-T, --threshold <number>',
 		'permit this number of errors, warnings, or notices, otherwise fail with exit code 2',
 		'0'
-	).option(
+	)
+	.option(
 		'--reporter <reporter>',
 		'the reporter to use. Can be a npm module or a path to a local file.'
 	)
@@ -119,8 +120,19 @@ Promise.resolve()
 //   - json extension (JSON)
 function loadConfig(configPath) {
 	return new Promise((resolve, reject) => {
-		configPath = resolveConfigPath(configPath);
 		let config;
+
+		try {
+			config = JSON.parse(configPath);
+			// Allow loaded configs to return a promise
+			return Promise.resolve(config).then(loadedConfig => {
+				resolve(defaultConfig(loadedConfig || {}));
+			});
+		} catch (error) {
+			// Do nothting - try resolving config as path
+		}
+
+		configPath = resolveConfigPath(configPath);
 		try {
 			config = loadLocalConfigUnmodified(configPath);
 			if (!config) {
@@ -130,7 +142,7 @@ function loadConfig(configPath) {
 				config = loadLocalConfigWithJson(configPath);
 			}
 			if (options.config && !config) {
-				return reject(new Error(`The config file "${configPath}" could not be loaded`));
+				return reject(new Error(`The config file / JSON string "${configPath}" could not be loaded`));
 			}
 		} catch (error) {
 			return reject(
