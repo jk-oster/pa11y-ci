@@ -20,7 +20,7 @@ describe('lib/pa11y-ci', () => {
 		log = require('../mock/log.mock');
 
 		pa11y = require('../mock/pa11y.mock');
-		mockery.registerMock('pa11y', pa11y);
+		mockery.registerMock('@aarongoldenthal/pa11y', pa11y);
 
 		queue = sinon.spy(require('async/queue'));
 		mockery.registerMock('async/queue', queue);
@@ -319,8 +319,8 @@ describe('lib/pa11y-ci', () => {
 				assert.callCount(pa11y, 1);
 				assert.calledWith(pa11y, 'qux-url', userUrls[0]);
 			});
-			it('did not createIncognitoBrowserContext', () => {
-				assert.callCount(mockBrowser.createIncognitoBrowserContext, 0);
+			it('did not createBrowserContext', () => {
+				assert.callCount(mockBrowser.createBrowserContext, 0);
 			});
 			it('closes the browser context after the test runner completes', () => {
 				assert.callCount(mockBrowser.close, 1);
@@ -398,11 +398,11 @@ describe('lib/pa11y-ci', () => {
 
 			it('closes each incognito browser context created during test runner execution', () => {
 				assert.callCount(
-					mockBrowser.createIncognitoBrowserContext,
+					mockBrowser.createBrowserContext,
 					2
 				);
 				assert.callCount(
-					mockBrowser.createIncognitoBrowserContext.close,
+					mockBrowser.createBrowserContext.close,
 					2
 				);
 			});
